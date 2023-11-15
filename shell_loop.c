@@ -1,3 +1,4 @@
+shell_loop.c
 #include "shell.h"
 
 /**
@@ -64,7 +65,8 @@ int find_builtin(info_t *info)
 		{"unsetenv", _myunsetenv},
 		{"cd", _mycd},
 		{"alias", _myalias},
-		{NULL, NULL}};
+		{NULL, NULL}
+	};
 
 	for (i = 0; builtintbl[i].type; i++)
 		if (_strcmp(info->argv[0], builtintbl[i].type) == 0)
@@ -107,7 +109,8 @@ void find_cmd(info_t *info)
 	}
 	else
 	{
-		if ((interactive(info) || _getenv(info, "PATH=") || info->argv[0][0] == '/') && is_cmd(info, info->argv[0]))
+		if ((interactive(info) || _getenv(info, "PATH=")
+			|| info->argv[0][0] == '/') && is_cmd(info, info->argv[0]))
 			fork_cmd(info);
 		else if (*(info->arg) != '\n')
 		{
@@ -122,15 +125,6 @@ void find_cmd(info_t *info)
  * @info: the parameter & return info struct
  *
  * Return: void
- */
-
-/**
- * Fork system call is used for creating a new process, which is called child process,
- *  which runs concurrently with the process that makes the fork() call (parent process).
- *  After a new child process is created,
- * both processes will execute the next instruction following the fork() system call.
- *  A child process uses the same pc(program counter),
- * same CPU registers, same open files which use in the parent process.
  */
 void fork_cmd(info_t *info)
 {
