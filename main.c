@@ -1,44 +1,51 @@
 #include "shell.h"
 
 /**
- * main - entry point
- * @ac: arg count
- * @av: arg vector
- *
- * Return: 0 on success, 1 on error
+ * main - the main function
+ * @argc: the argument count plus the ame of file
+ * @argv: arrays of arguments and name of file
+ * Return: 0 on succes
  */
-int main(int ac, char **av)
+int main(int argc, char **argv)
 {
-	info_t info[] = { INFO_INIT };
-	int fd = 2;
+	size_t n = 0;
+	int state = 0, sta = 0;
+	char *tmp = NULL;
+	concatenate_pair cp;
 
-	asm ("mov %1, %0\n\t"
-		"add $3, %0"
-		: "=r" (fd)
-		: "r" (fd));
-
-	if (ac == 2)
+	(void)argc;
+	cp.buf = NULL;
+	cp.fnm = argv[0];
+	signal(SIGINT, handle_sigint);
+	while (ON)
 	{
-		fd = open(av[1], O_RDONLY);
-		if (fd == -1)
+		if (!state)
+		write(STDIN_FILENO, "$ ", 2);
+		if (state && sta)
+			write(STDIN_FILENO, "> ", 2);
+		fflush(stdout);
+		if (_getline(&cp.buf, &n, stdin) == -1)
 		{
-			if (errno == EACCES)
-				exit(126);
-			if (errno == ENOENT)
-			{
-				_eputs(av[0]);
-				_eputs(": 0: Can't open ");
-				_eputs(av[1]);
-				_eputchar('\n');
-				_eputchar(BUF_FLUSH);
-				exit(127);
-			}
-			return (EXIT_FAILURE);
+			write(STDIN_FILENO, "\n", 1);
+			break;
 		}
-		info->readfd = fd;
+		cp.buf[_strcspn(cp.buf, "\n")] = '\0';
+		if (_strlen(cp.buf) == 0)
+		{
+			if (!sta)
+			state = 0;
+			continue;
+		}
+		if (_white(cp.buf) == 1)
+		{
+			if (!sta)
+			state = 0;
+			continue;
+		}
+		extra_main(cp, &tmp, &sta, &state);
 	}
-	populate_env_list(info);
-	read_history(info);
-	hsh(info, av);
-	return (EXIT_SUCCESS);
+	if (tmp != NULL)
+		free(tmp);
+	free(cp.buf);
+	return (0);
 }
